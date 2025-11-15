@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Job, JobStatusUpdate } from '../../types/job';
 import { StatusBadge } from '../common/StatusBadge';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { StatusUpdateModal } from './StatusUpdateModal';
+import { JobFilters } from './JobFilters';
 import { useJobs, useUpdateJobStatus, useDeleteJob } from '../../hooks/useJobs';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -31,6 +33,7 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<{ jobId: number; jobName: string } | null>(null);
+  const [statusUpdateJob, setStatusUpdateJob] = useState<Job | null>(null);
   
   // Debounce search term to prevent excessive API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -48,13 +51,20 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
 
   const jobs = data?.results || [];
 
-  const handleStatusUpdate = (jobId: number, newStatus: JobStatusUpdate['status_type']) => {
+  const handleStatusUpdateClick = (job: Job) => {
+    setStatusUpdateJob(job);
+  };
+
+  const handleStatusUpdate = (statusUpdate: JobStatusUpdate) => {
+    if (!statusUpdateJob) return;
+    
     updateJobStatusMutation.mutate({ 
-      jobId, 
-      statusUpdate: { status_type: newStatus } 
+      jobId: statusUpdateJob.id, 
+      statusUpdate 
     }, {
       onSuccess: () => {
-        showToast(`Job status updated to ${newStatus.toLowerCase()}`, 'success');
+        showToast(`Job status updated to ${statusUpdate.status_type.toLowerCase()}`, 'success');
+        setStatusUpdateJob(null);
       },
       onError: (error) => {
         showToast(error.message || 'Failed to update job status', 'error');
@@ -110,64 +120,27 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
-        <div className="flex-1 min-w-64">
-          <input
-            type="text"
-            placeholder="Search jobs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        
-        <div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Statuses</option>
-            <option value="PENDING">Pending</option>
-            <option value="RUNNING">Running</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="FAILED">Failed</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
-        </div>
-        
-        <div>
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Priorities</option>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(p => (
-              <option key={p} value={p}>
-                Priority {p} {p <= 3 ? '(Low)' : p <= 7 ? '(Medium)' : '(High)'}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <button
-          onClick={() => {
-            setSearchTerm('');
-            setStatusFilter('');
-            setPriorityFilter('');
-          }}
-          className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          Clear Filters
-        </button>
-      </div>
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('');
+    setPriorityFilter('');
+  };
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+  return (
+    <div className="space-y-6">
+      <JobFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        priorityFilter={priorityFilter}
+        setPriorityFilter={setPriorityFilter}
+        onClearFilters={handleClearFilters}
+      />
+
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -249,17 +222,12 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
                 {new Date(job.created_at).toLocaleString()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                <select
-                  onChange={(e) => handleStatusUpdate(job.id, e.target.value as JobStatusUpdate['status_type'])}
-                  value={job.latest_status?.status_type || 'PENDING'}
-                  className="border rounded px-2 py-1 text-xs"
+                <button
+                  onClick={() => handleStatusUpdateClick(job)}
+                  className="text-blue-600 hover:text-blue-800 text-xs underline"
                 >
-                  <option value="PENDING">Pending</option>
-                  <option value="RUNNING">Running</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="FAILED">Failed</option>
-                  <option value="CANCELLED">Cancelled</option>
-                </select>
+                  Edit Status
+                </button>
                 <button
                   onClick={() => handleDeleteClick(job)}
                   className="text-red-600 hover:text-red-800 text-xs underline"
@@ -271,7 +239,16 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
           ))}
         </tbody>
         </table>
+        </div>
       </div>
+      
+      <StatusUpdateModal
+        job={statusUpdateJob}
+        isOpen={statusUpdateJob !== null}
+        onClose={() => setStatusUpdateJob(null)}
+        onUpdate={handleStatusUpdate}
+        isUpdating={updateJobStatusMutation.isPending}
+      />
       
       <ConfirmModal
         isOpen={deleteConfirm !== null}

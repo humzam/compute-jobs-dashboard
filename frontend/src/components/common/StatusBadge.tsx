@@ -3,6 +3,8 @@ import React from 'react';
 interface StatusBadgeProps {
   status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
   className?: string;
+  showIcon?: boolean;
+  size?: 'sm' | 'md' | 'lg';
 }
 
 const STATUS_STYLES = {
@@ -21,12 +23,38 @@ const STATUS_LABELS = {
   CANCELLED: 'Cancelled',
 };
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '' }) => {
+const STATUS_ICONS = {
+  PENDING: '⏳',
+  RUNNING: '🔄',
+  COMPLETED: '✅',
+  FAILED: '❌',
+  CANCELLED: '⏹️',
+};
+
+const SIZE_CLASSES = {
+  sm: 'px-2 py-0.5 text-xs',
+  md: 'px-2.5 py-0.5 text-xs',
+  lg: 'px-3 py-1 text-sm',
+};
+
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ 
+  status, 
+  className = '',
+  showIcon = true,
+  size = 'md'
+}) => {
+  const sizeClass = SIZE_CLASSES[size];
+  
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_STYLES[status]} ${className}`}
+      className={`inline-flex items-center gap-1 rounded-full font-medium border ${STATUS_STYLES[status]} ${sizeClass} ${className}`}
     >
-      {STATUS_LABELS[status]}
+      {showIcon && (
+        <span className="flex-shrink-0">
+          {STATUS_ICONS[status]}
+        </span>
+      )}
+      <span>{STATUS_LABELS[status]}</span>
     </span>
   );
 };

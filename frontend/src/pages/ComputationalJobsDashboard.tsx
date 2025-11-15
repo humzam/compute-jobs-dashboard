@@ -2,6 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { JobList } from '../components/jobs/JobList';
 import { JobForm } from '../components/jobs/JobForm';
 import { DashboardStats } from '../components/dashboard/DashboardStats';
+import { Header } from '../components/common/Header';
+import { Container } from '../components/common/Container';
 
 export const ComputationalJobsDashboard: React.FC = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -13,27 +15,26 @@ export const ComputationalJobsDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Computational Jobs Dashboard</h1>
-          <p className="text-gray-600 mt-1">Manage and monitor your computational tasks</p>
-        </div>
-
-        <div className="space-y-8">
-          <DashboardStats refreshTrigger={refreshTrigger} />
-          
-          <JobForm onJobCreated={handleJobCreated} />
-          
-          <div className="bg-white rounded-lg border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">Jobs</h2>
-            </div>
-            <div className="p-6">
+      <Header />
+      
+      <main className="py-8">
+        <Container>
+          <div className="space-y-8">
+            <DashboardStats refreshTrigger={refreshTrigger} />
+            
+            <JobForm onJobCreated={handleJobCreated} />
+            
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">All Jobs</h2>
+                <p className="text-gray-600 mt-1">View and manage your computational jobs</p>
+              </div>
+              
               <JobList refreshTrigger={refreshTrigger} />
             </div>
           </div>
-        </div>
-      </div>
+        </Container>
+      </main>
     </div>
   );
 };

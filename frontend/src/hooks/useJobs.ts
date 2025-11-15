@@ -1,3 +1,4 @@
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { jobsApi } from '../services/api/jobs';
 import { JobStatusUpdate } from '../types/job';
@@ -21,7 +22,7 @@ export const jobsKeys = {
 export const useJobs = (options: UseJobsOptions = {}) => {
   const { search, status, priority, page = 1 } = options;
   
-  return useQuery({
+  const queryResult = useQuery({
     queryKey: jobsKeys.list({ search, status, priority, page }),
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -42,6 +43,24 @@ export const useJobs = (options: UseJobsOptions = {}) => {
     staleTime: 1 * 60 * 1000, // 1 minute for jobs data
     refetchOnWindowFocus: true,
   });
+
+  // Check if there are any RUNNING jobs and enable polling
+  const hasRunningJobs = queryResult.data?.results?.some(
+    (job: any) => job.latest_status?.status_type === 'RUNNING'
+  );
+
+  // Enable polling if there are running jobs
+  React.useEffect(() => {
+    if (hasRunningJobs && !status) { // Only poll when not filtering by status
+      const interval = setInterval(() => {
+        queryResult.refetch();
+      }, 5000); // Poll every 5 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [hasRunningJobs, status, queryResult]);
+
+  return queryResult;
 };
 
 // Custom hook for fetching stats
