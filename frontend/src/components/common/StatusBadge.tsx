@@ -47,6 +47,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = React.memo(({
   
   return (
     <span
+      data-testid="status-badge"
       className={`inline-flex items-center gap-1 rounded-full font-medium border ${STATUS_STYLES[status]} ${sizeClass} ${className}`}
     >
       {showIcon && (

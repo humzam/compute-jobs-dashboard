@@ -52,7 +52,8 @@ export const Toast: React.FC<ToastProps> = ({
 
   return (
     <div
-      className={`fixed top-4 right-4 z-50 p-4 rounded-md border shadow-lg transition-all duration-300 transform ${
+      data-testid={`toast-${type}`}
+      className={`toast-${type} fixed top-4 right-4 z-50 p-4 rounded-md border shadow-lg transition-all duration-300 transform ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       } ${getTypeStyles()}`}
     >

@@ -43,7 +43,7 @@ export const JobForm: React.FC<JobFormProps> = ({ onJobCreated }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-6" data-testid="job-form">
       <h2 className="text-lg font-medium text-gray-900 mb-4">Create New Computational Job</h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
