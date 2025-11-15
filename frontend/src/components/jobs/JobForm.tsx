@@ -8,6 +8,8 @@ interface JobFormProps {
 
 export const JobForm: React.FC<JobFormProps> = ({ onJobCreated }) => {
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState(5);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,10 +25,16 @@ export const JobForm: React.FC<JobFormProps> = ({ onJobCreated }) => {
       setLoading(true);
       setError(null);
       
-      const jobData: JobCreate = { name: name.trim() };
+      const jobData: JobCreate = { 
+        name: name.trim(),
+        description: description.trim() || undefined,
+        priority: priority
+      };
       await jobsApi.createJob(jobData);
       
       setName('');
+      setDescription('');
+      setPriority(5);
       onJobCreated?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create job');
@@ -53,6 +61,40 @@ export const JobForm: React.FC<JobFormProps> = ({ onJobCreated }) => {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={loading}
           />
+        </div>
+
+        <div>
+          <label htmlFor="jobDescription" className="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea
+            id="jobDescription"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Enter job description..."
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled={loading}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="jobPriority" className="block text-sm font-medium text-gray-700 mb-1">
+            Priority (1-10)
+          </label>
+          <select
+            id="jobPriority"
+            value={priority}
+            onChange={(e) => setPriority(parseInt(e.target.value))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled={loading}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(p => (
+              <option key={p} value={p}>
+                {p} {p <= 3 ? '(Low)' : p <= 7 ? '(Medium)' : '(High)'}
+              </option>
+            ))}
+          </select>
         </div>
 
         {error && (

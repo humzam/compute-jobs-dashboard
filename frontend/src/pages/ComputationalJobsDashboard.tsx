@@ -1,14 +1,15 @@
-import React, { useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { JobList } from '../components/jobs/JobList';
 import { JobForm } from '../components/jobs/JobForm';
+import { DashboardStats } from '../components/dashboard/DashboardStats';
 
 export const ComputationalJobsDashboard: React.FC = () => {
-  const jobListRef = useRef<{ refreshJobs: () => void }>();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleJobCreated = () => {
-    // Force refresh of job list
-    window.location.reload();
-  };
+  const handleJobCreated = useCallback(() => {
+    // Trigger refresh by updating the key
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -19,6 +20,8 @@ export const ComputationalJobsDashboard: React.FC = () => {
         </div>
 
         <div className="space-y-8">
+          <DashboardStats refreshTrigger={refreshTrigger} />
+          
           <JobForm onJobCreated={handleJobCreated} />
           
           <div className="bg-white rounded-lg border border-gray-200">
@@ -26,7 +29,7 @@ export const ComputationalJobsDashboard: React.FC = () => {
               <h2 className="text-lg font-medium text-gray-900">Jobs</h2>
             </div>
             <div className="p-6">
-              <JobList />
+              <JobList refreshTrigger={refreshTrigger} />
             </div>
           </div>
         </div>
