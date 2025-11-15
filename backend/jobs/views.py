@@ -3,12 +3,17 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Subquery, OuterRef, Avg, F, ExpressionWrapper, DurationField
+from django.db import models
+from django.db import connection
 from django.utils import timezone
 from datetime import datetime
+import logging
 from .models import Job, JobStatus
 from .serializers import JobReadSerializer, JobWriteSerializer, JobStatusUpdateSerializer
 from .pagination import JobPagination
+
+logger = logging.getLogger('jobs.api')
 
 
 class JobViewSet(viewsets.ModelViewSet):
@@ -105,34 +110,121 @@ class JobViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def stats(self, request):
-        """Get dashboard statistics"""
+        """Get dashboard statistics using materialized view for better performance"""
+        try:
+            # Try to get stats from materialized view first
+            with connection.cursor() as cursor:
+                # Check if view needs refresh (older than 5 minutes)
+                cursor.execute("""
+                    SELECT last_updated, 
+                           total_jobs, pending_jobs, running_jobs, completed_jobs, 
+                           failed_jobs, cancelled_jobs, recent_jobs,
+                           avg_completion_time_minutes
+                    FROM job_stats_view 
+                    WHERE last_updated > NOW() - INTERVAL '5 minutes'
+                    LIMIT 1;
+                """)
+                
+                result = cursor.fetchone()
+                
+                if result:
+                    # Use cached stats from materialized view
+                    stats_data = {
+                        'total_jobs': result[1],
+                        'pending_jobs': result[2],
+                        'running_jobs': result[3], 
+                        'completed_jobs': result[4],
+                        'failed_jobs': result[5],
+                        'cancelled_jobs': result[6],
+                        'recent_jobs': result[7],
+                        'avg_completion_time_minutes': float(result[8]) if result[8] else 0,
+                        'last_updated': result[0].isoformat(),
+                        'data_source': 'materialized_view'
+                    }
+                else:
+                    # Refresh materialized view and get fresh stats
+                    cursor.execute("SELECT refresh_job_stats();")
+                    cursor.execute("""
+                        SELECT last_updated, 
+                               total_jobs, pending_jobs, running_jobs, completed_jobs, 
+                               failed_jobs, cancelled_jobs, recent_jobs,
+                               avg_completion_time_minutes
+                        FROM job_stats_view 
+                        LIMIT 1;
+                    """)
+                    
+                    result = cursor.fetchone()
+                    if result:
+                        stats_data = {
+                            'total_jobs': result[1],
+                            'pending_jobs': result[2],
+                            'running_jobs': result[3],
+                            'completed_jobs': result[4], 
+                            'failed_jobs': result[5],
+                            'cancelled_jobs': result[6],
+                            'recent_jobs': result[7],
+                            'avg_completion_time_minutes': float(result[8]) if result[8] else 0,
+                            'last_updated': result[0].isoformat(),
+                            'data_source': 'refreshed_view'
+                        }
+                    else:
+                        raise Exception("Failed to get stats from materialized view")
+        
+        except Exception as e:
+            # Fallback to direct queries if materialized view fails
+            logger.warning(f"Materialized view stats failed, using fallback: {e}")
+            stats_data = self._get_stats_fallback()
+            
+        # Add priority distribution (not in materialized view due to complexity)
+        priority_counts = Job.objects.values('priority').annotate(count=Count('priority')).order_by('priority')
+        stats_data['priority_distribution'] = {item['priority']: item['count'] for item in priority_counts}
+        
+        return Response(stats_data)
+    
+    def _get_stats_fallback(self):
+        """Fallback method for getting stats using direct queries"""
         total_jobs = Job.objects.count()
         
         # Status counts (get latest status for each job)
         status_counts = {}
         for status_choice in JobStatus.STATUS_CHOICES:
             status_type = status_choice[0]
-            # Count jobs where the latest status matches this type
-            count = Job.objects.filter(
-                statuses__status_type=status_type,
-                statuses__id__in=Job.objects.values('statuses__id').order_by('-statuses__timestamp')[:total_jobs]
-            ).distinct().count()
-            status_counts[status_type.lower()] = count
-        
-        # Priority distribution
-        priority_counts = Job.objects.values('priority').annotate(count=Count('priority')).order_by('priority')
-        priority_distribution = {item['priority']: item['count'] for item in priority_counts}
+            # Use more efficient subquery approach
+            latest_status_subquery = JobStatus.objects.filter(
+                job=OuterRef('pk')
+            ).order_by('-timestamp').values('status_type')[:1]
+            
+            count = Job.objects.annotate(
+                latest_status_type=Subquery(latest_status_subquery)
+            ).filter(latest_status_type=status_type).count()
+            
+            status_counts[status_type.lower() + '_jobs'] = count
         
         # Recent activity (jobs created in last 24 hours)
         yesterday = timezone.now() - timezone.timedelta(days=1)
         recent_jobs = Job.objects.filter(created_at__gte=yesterday).count()
         
-        return Response({
+        # Average completion time
+        avg_completion = Job.objects.filter(
+            completed_at__isnull=False
+        ).aggregate(
+            avg_time=models.Avg(
+                models.ExpressionWrapper(
+                    models.F('completed_at') - models.F('created_at'),
+                    output_field=models.DurationField()
+                )
+            )
+        )['avg_time']
+        
+        avg_minutes = (avg_completion.total_seconds() / 60) if avg_completion else 0
+        
+        return {
             'total_jobs': total_jobs,
-            'status_counts': status_counts,
-            'priority_distribution': priority_distribution,
             'recent_jobs': recent_jobs,
-        })
+            'avg_completion_time_minutes': round(avg_minutes, 2),
+            'data_source': 'fallback_queries',
+            **status_counts
+        }
 
     @action(detail=False, methods=['post'])
     def bulk_status_update(self, request):
