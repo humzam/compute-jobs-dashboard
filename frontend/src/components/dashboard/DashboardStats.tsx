@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { StatsCard } from './StatsCard';
+import { useJobStats } from '../../hooks/useJobs';
 
 interface JobStats {
   total_jobs: number;
@@ -19,41 +20,9 @@ interface DashboardStatsProps {
 }
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({ refreshTrigger }) => {
-  const [stats, setStats] = useState<JobStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: stats, isLoading, error, isError } = useJobStats();
 
-  const fetchStats = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/api/jobs/stats/');
-      if (!response.ok) {
-        throw new Error('Failed to fetch stats');
-      }
-      const data = await response.json();
-      setStats(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch stats');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStats();
-    // Refresh stats every 30 seconds
-    const interval = setInterval(fetchStats, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Handle external refresh trigger (e.g., when new job is created)
-  useEffect(() => {
-    if (refreshTrigger && refreshTrigger > 0) {
-      fetchStats();
-    }
-  }, [refreshTrigger]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[1, 2, 3, 4].map((i) => (
@@ -66,12 +35,12 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ refreshTrigger }
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <div className="text-red-800">Error loading stats: {error}</div>
+        <div className="text-red-800">Error loading stats: {error?.message || 'Failed to fetch stats'}</div>
         <button 
-          onClick={fetchStats}
+          onClick={() => window.location.reload()}
           className="mt-2 text-red-600 hover:text-red-800 underline"
         >
           Retry

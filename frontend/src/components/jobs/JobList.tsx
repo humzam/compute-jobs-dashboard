@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Job, JobStatusUpdate } from '../../types/job';
-import { jobsApi } from '../../services/api/jobs';
 import { StatusBadge } from '../common/StatusBadge';
+import { ConfirmModal } from '../common/ConfirmModal';
+import { useJobs, useUpdateJobStatus, useDeleteJob } from '../../hooks/useJobs';
+import { useToast } from '../../contexts/ToastContext';
 
 // Custom debounce hook
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
@@ -25,84 +27,59 @@ interface JobListProps {
 }
 
 export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ jobId: number; jobName: string } | null>(null);
   
   // Debounce search term to prevent excessive API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const fetchJobs = useCallback(async (showLoading = true) => {
-    try {
-      // Only show loading state for initial load
-      if (showLoading && !hasLoaded) {
-        setLoading(true);
-      }
-      
-      // Build query parameters
-      const params = new URLSearchParams();
-      if (debouncedSearchTerm) params.append('search', debouncedSearchTerm);
-      if (statusFilter) params.append('status', statusFilter);
-      if (priorityFilter) params.append('priority', priorityFilter);
-      
-      const url = `http://localhost:8000/api/jobs/${params.toString() ? '?' + params.toString() : ''}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch jobs');
-      }
-      
-      const data = await response.json();
-      setJobs(data.results);
-      setError(null);
-      setHasLoaded(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch jobs');
-    } finally {
-      if (showLoading && !hasLoaded) {
-        setLoading(false);
-      }
-    }
-  }, [debouncedSearchTerm, statusFilter, priorityFilter, hasLoaded]);
+  // React Query hooks
+  const { data, isLoading, error, isError } = useJobs({
+    search: debouncedSearchTerm,
+    status: statusFilter,
+    priority: priorityFilter,
+  });
 
-  useEffect(() => {
-    fetchJobs();
-  }, [fetchJobs]);
+  const updateJobStatusMutation = useUpdateJobStatus();
+  const deleteJobMutation = useDeleteJob();
+  const { showToast } = useToast();
 
-  // Handle external refresh trigger (e.g., when new job is created)
-  useEffect(() => {
-    if (refreshTrigger && refreshTrigger > 0) {
-      fetchJobs(false); // Refresh without loading state
-    }
-  }, [refreshTrigger, fetchJobs]);
+  const jobs = data?.results || [];
 
-  const handleStatusUpdate = async (jobId: number, newStatus: JobStatusUpdate['status_type']) => {
-    try {
-      await jobsApi.updateJobStatus(jobId, { status_type: newStatus });
-      fetchJobs(false); // Refresh without loading spinner
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update job status');
-    }
+  const handleStatusUpdate = (jobId: number, newStatus: JobStatusUpdate['status_type']) => {
+    updateJobStatusMutation.mutate({ 
+      jobId, 
+      statusUpdate: { status_type: newStatus } 
+    }, {
+      onSuccess: () => {
+        showToast(`Job status updated to ${newStatus.toLowerCase()}`, 'success');
+      },
+      onError: (error) => {
+        showToast(error.message || 'Failed to update job status', 'error');
+      }
+    });
   };
 
-  const handleDelete = async (jobId: number) => {
-    if (!confirm('Are you sure you want to delete this job?')) {
-      return;
-    }
+  const handleDeleteClick = (job: Job) => {
+    setDeleteConfirm({ jobId: job.id, jobName: job.name });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteConfirm) return;
     
-    try {
-      await jobsApi.deleteJob(jobId);
-      fetchJobs(false); // Refresh without loading spinner
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete job');
-    }
+    deleteJobMutation.mutate(deleteConfirm.jobId, {
+      onSuccess: () => {
+        showToast('Job deleted successfully', 'success');
+      },
+      onError: (error) => {
+        showToast(error.message || 'Failed to delete job', 'error');
+      }
+    });
   };
 
-  if (loading && !hasLoaded) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-gray-500">Loading jobs...</div>
@@ -110,12 +87,12 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <div className="text-red-800">Error: {error}</div>
+        <div className="text-red-800">Error: {error?.message || 'Failed to fetch jobs'}</div>
         <button 
-          onClick={() => fetchJobs()}
+          onClick={() => window.location.reload()}
           className="mt-2 text-red-600 hover:text-red-800 underline"
         >
           Try again
@@ -284,7 +261,7 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
                   <option value="CANCELLED">Cancelled</option>
                 </select>
                 <button
-                  onClick={() => handleDelete(job.id)}
+                  onClick={() => handleDeleteClick(job)}
                   className="text-red-600 hover:text-red-800 text-xs underline"
                 >
                   Delete
@@ -295,6 +272,17 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
         </tbody>
         </table>
       </div>
+      
+      <ConfirmModal
+        isOpen={deleteConfirm !== null}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Job"
+        message={`Are you sure you want to delete "${deleteConfirm?.jobName}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 };
