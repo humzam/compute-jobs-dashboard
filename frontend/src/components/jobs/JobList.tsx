@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Job, JobStatusUpdate } from '../../types/job';
-import { StatusBadge } from '../common/StatusBadge';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { StatusUpdateModal } from './StatusUpdateModal';
 import { JobFilters } from './JobFilters';
+import { JobRow } from './JobRow';
+import { Pagination } from '../common/Pagination';
 import { useJobs, useUpdateJobStatus, useDeleteJob } from '../../hooks/useJobs';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -34,6 +35,8 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
   const [priorityFilter, setPriorityFilter] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<{ jobId: number; jobName: string } | null>(null);
   const [statusUpdateJob, setStatusUpdateJob] = useState<Job | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   
   // Debounce search term to prevent excessive API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -43,6 +46,8 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
     search: debouncedSearchTerm,
     status: statusFilter,
     priority: priorityFilter,
+    page: currentPage,
+    page_size: pageSize,
   });
 
   const updateJobStatusMutation = useUpdateJobStatus();
@@ -50,6 +55,22 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
   const { showToast } = useToast();
 
   const jobs = data?.results || [];
+  const totalItems = data?.count || 0;
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, statusFilter, priorityFilter]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
+  };
 
   const handleStatusUpdateClick = (job: Job) => {
     setStatusUpdateJob(job);
@@ -168,78 +189,25 @@ export const JobList: React.FC<JobListProps> = ({ refreshTrigger }) => {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {jobs.map((job) => (
-            <tr key={job.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {job.id}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div>
-                  <div className="text-sm font-medium text-gray-900">{job.name}</div>
-                  {job.description && (
-                    <div className="text-xs text-gray-500 truncate max-w-xs">
-                      {job.description}
-                    </div>
-                  )}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  job.priority >= 8 ? 'bg-red-100 text-red-800' :
-                  job.priority >= 5 ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-green-100 text-green-800'
-                }`}>
-                  {job.priority}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {job.latest_status ? (
-                  <div>
-                    <StatusBadge status={job.latest_status.status_type} />
-                    {job.latest_status.message && (
-                      <div className="text-xs text-gray-500 mt-1 truncate max-w-xs">
-                        {job.latest_status.message}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-gray-400">No status</span>
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {job.latest_status?.progress !== undefined ? (
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full" 
-                      style={{ width: `${job.latest_status.progress}%` }}
-                    ></div>
-                    <div className="text-xs text-gray-500 mt-1">{job.latest_status.progress}%</div>
-                  </div>
-                ) : (
-                  <span className="text-gray-400">-</span>
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {new Date(job.created_at).toLocaleString()}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                <button
-                  onClick={() => handleStatusUpdateClick(job)}
-                  className="text-blue-600 hover:text-blue-800 text-xs underline"
-                >
-                  Edit Status
-                </button>
-                <button
-                  onClick={() => handleDeleteClick(job)}
-                  className="text-red-600 hover:text-red-800 text-xs underline"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
+            <JobRow
+              key={job.id}
+              job={job}
+              onStatusUpdateClick={handleStatusUpdateClick}
+              onDeleteClick={handleDeleteClick}
+            />
           ))}
         </tbody>
         </table>
         </div>
+        
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={pageSize}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
       </div>
       
       <StatusUpdateModal

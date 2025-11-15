@@ -37,7 +37,7 @@ const SIZE_CLASSES = {
   lg: 'px-3 py-1 text-sm',
 };
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ 
+export const StatusBadge: React.FC<StatusBadgeProps> = React.memo(({ 
   status, 
   className = '',
   showIcon = true,
@@ -57,4 +57,6 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       <span>{STATUS_LABELS[status]}</span>
     </span>
   );
-};
+});
+
+StatusBadge.displayName = 'StatusBadge';

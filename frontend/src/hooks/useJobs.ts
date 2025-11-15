@@ -8,6 +8,7 @@ interface UseJobsOptions {
   status?: string;
   priority?: string;
   page?: number;
+  page_size?: number;
 }
 
 // Query keys
@@ -20,16 +21,17 @@ export const jobsKeys = {
 
 // Custom hook for fetching jobs
 export const useJobs = (options: UseJobsOptions = {}) => {
-  const { search, status, priority, page = 1 } = options;
+  const { search, status, priority, page = 1, page_size = 20 } = options;
   
   const queryResult = useQuery({
-    queryKey: jobsKeys.list({ search, status, priority, page }),
+    queryKey: jobsKeys.list({ search, status, priority, page, page_size }),
     queryFn: async () => {
       const params = new URLSearchParams();
       if (search) params.append('search', search);
       if (status) params.append('status', status);
       if (priority) params.append('priority', priority);
       params.append('page', page.toString());
+      params.append('page_size', page_size.toString());
       
       const url = `http://localhost:8000/api/jobs/${params.toString() ? '?' + params.toString() : ''}`;
       const response = await fetch(url);
@@ -40,7 +42,8 @@ export const useJobs = (options: UseJobsOptions = {}) => {
       
       return response.json();
     },
-    staleTime: 1 * 60 * 1000, // 1 minute for jobs data
+    staleTime: 30 * 1000, // 30 seconds - jobs data changes frequently
+    gcTime: 5 * 60 * 1000, // 5 minutes - cache job lists for 5 minutes
     refetchOnWindowFocus: true,
   });
 

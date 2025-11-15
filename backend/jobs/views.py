@@ -8,15 +8,21 @@ from django.utils import timezone
 from datetime import datetime
 from .models import Job, JobStatus
 from .serializers import JobReadSerializer, JobWriteSerializer, JobStatusUpdateSerializer
+from .pagination import JobPagination
 
 
 class JobViewSet(viewsets.ModelViewSet):
-    queryset = Job.objects.prefetch_related('statuses')
+    queryset = Job.objects.select_related().prefetch_related(
+        'statuses'
+    ).only(
+        'id', 'name', 'description', 'priority', 'created_at', 'updated_at', 'completed_at'
+    )
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = ['priority']
     search_fields = ['name', 'description']
     ordering_fields = ['created_at', 'name', 'priority', 'updated_at']
     ordering = ['-priority', '-created_at']
+    pagination_class = JobPagination
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:

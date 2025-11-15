@@ -4,18 +4,24 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { ComputationalJobsDashboard } from './pages/ComputationalJobsDashboard'
 import { ToastProvider } from './contexts/ToastContext'
 
-// Create a client
+// Create a client with optimized cache settings
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime in v5)
-      retry: 1,
+      staleTime: 2 * 60 * 1000, // 2 minutes - data is fresh for 2 minutes
+      gcTime: 15 * 60 * 1000, // 15 minutes - keep unused data for 15 minutes
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx errors, but retry on network errors
+        if (error?.status >= 400 && error?.status < 500) return false;
+        return failureCount < 2;
+      },
       refetchOnWindowFocus: true,
-      refetchOnMount: true,
+      refetchOnMount: 'always', // Always refetch to ensure fresh data
+      networkMode: 'online', // Only query when online
     },
     mutations: {
       retry: 1,
+      networkMode: 'online',
     },
   },
 })
