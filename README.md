@@ -1,5 +1,12 @@
 # Job Dashboard
 
+![CI](https://img.shields.io/github/actions/workflow/status/humza-mangrio/job-dashboard/job-dashboard-ci.yaml?branch=main&label=CI&style=flat-square)
+![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=flat-square&logo=docker)
+![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=flat-square&logo=react)
+![Django](https://img.shields.io/badge/Django-Backend-092E20?style=flat-square&logo=django)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791?style=flat-square&logo=postgresql)
+![E2E Tests](https://img.shields.io/badge/E2E%20Tests-6%20Passing-green?style=flat-square&logo=playwright)
+
 A computational job management system built with React and Django.
 
 For more details on things like API endpoints, other helpful Makefile targets, or debugging help, please see: [DOCUMENTATION.md](documentation.md).
