@@ -1,11 +1,13 @@
 # Job Dashboard
 
-![CI](https://img.shields.io/github/actions/workflow/status/humza-mangrio/job-dashboard/job-dashboard-ci.yaml?branch=main&label=CI&style=flat-square)
-![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=flat-square&logo=docker)
-![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=flat-square&logo=react)
-![Django](https://img.shields.io/badge/Django-Backend-092E20?style=flat-square&logo=django)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791?style=flat-square&logo=postgresql)
-![E2E Tests](https://img.shields.io/badge/E2E%20Tests-6%20Passing-green?style=flat-square&logo=playwright)
+[![CI](https://img.shields.io/github/actions/workflow/status/humza-mangrio/job-dashboard/job-dashboard-ci.yaml?branch=main&style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/humza-mangrio/job-dashboard/actions)
+
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+[![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=green)](https://www.djangoproject.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev/)
 
 A computational job management system built with React and Django.
 
