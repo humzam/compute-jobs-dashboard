@@ -15,7 +15,7 @@ up: ## Starts the entire application stack using Docker Compose
 	@echo "Admin: http://localhost:8000/admin"
 
 test: ## Runs your Playwright E2E tests
-	npm run test:e2e
+	npx playwright test --config=playwright.config.ci.ts
 
 stop: ## Stops the running Docker containers
 	docker compose down
