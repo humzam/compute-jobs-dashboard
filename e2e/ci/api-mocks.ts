@@ -50,6 +50,7 @@ export const mockJobs: MockJob[] = [
 ];
 
 export async function setupAPIMocks(page: Page) {
+
   // Mock GET /api/jobs/ - List jobs
   await page.route('**/api/jobs/**', async (route) => {
     if (route.request().method() === 'GET') {
@@ -96,7 +97,40 @@ export async function setupAPIMocks(page: Page) {
     }
   });
 
-  // Mock POST /api/jobs/{id}/status/ - Update job status
+  // Mock POST /api/jobs/{id}/status/ - Update job status  
+  await page.route('**/api/jobs/*/status/**', async (route) => {
+    if (route.request().method() === 'POST') {
+      const url = route.request().url();
+      const jobId = parseInt(url.split('/jobs/')[1].split('/')[0]);
+      const requestBody = route.request().postDataJSON();
+      
+      const job = mockJobs.find(j => j.id === jobId);
+      if (job) {
+        job.latest_status = {
+          id: Date.now(),
+          status_type: requestBody.status_type,
+          message: requestBody.message || '',
+          progress: requestBody.progress !== undefined ? parseInt(requestBody.progress) : null,
+          created_at: new Date().toISOString()
+        };
+        job.updated_at = new Date().toISOString();
+        
+        await route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify(job.latest_status)
+        });
+      } else {
+        await route.fulfill({
+          status: 404,
+          contentType: 'application/json',
+          body: JSON.stringify({ detail: 'Job not found' })
+        });
+      }
+    }
+  });
+
+  // Alternative pattern for status updates
   await page.route('**/api/jobs/*/status/', async (route) => {
     if (route.request().method() === 'POST') {
       const url = route.request().url();
@@ -109,7 +143,7 @@ export async function setupAPIMocks(page: Page) {
           id: Date.now(),
           status_type: requestBody.status_type,
           message: requestBody.message || '',
-          progress: requestBody.progress || null,
+          progress: requestBody.progress !== undefined ? parseInt(requestBody.progress) : null,
           created_at: new Date().toISOString()
         };
         job.updated_at = new Date().toISOString();

@@ -49,9 +49,9 @@ test.describe('Critical User Flows', () => {
     const jobRow = page.locator(`tr:has-text("${jobName}")`);
     await expect(jobRow).toBeVisible();
     
-    // Look for status indicator - it should show "Pending" 
-    const statusElement = jobRow.locator('[data-testid="status-badge"], .status-badge, td').filter({ hasText: /pending/i });
-    await expect(statusElement).toBeVisible();
+    // Look for status indicator - it should show "Pending" (use more specific selector)
+    const statusBadge = jobRow.locator('[data-testid="status-badge"]').filter({ hasText: /pending/i });
+    await expect(statusBadge).toBeVisible();
     
     // Step 7: Verify other job details are correct
     await expect(jobRow).toContainText(jobName);
@@ -68,58 +68,56 @@ test.describe('Critical User Flows', () => {
     await expect(page.locator('table')).toBeVisible({ timeout: 10000 });
     await page.waitForTimeout(2000); // Allow jobs to fully load
     
-    // Step 2: Find a job with PENDING status (from our mock data)
-    const pendingJobRow = page.locator('tr').filter({ hasText: /pending/i }).first();
+    // Step 2: Find a job with PENDING status (from our mock data) - specifically target "Data Processing Job"
+    const pendingJobRow = page.locator('tr:has-text("Data Processing Job")');
     await expect(pendingJobRow).toBeVisible();
     
-    // Step 3: Click the "Edit Status" or "Update Status" button
-    const editButton = pendingJobRow.locator('button').filter({ hasText: /edit|update|status/i }).first();
+    // Verify it currently has Pending status
+    await expect(pendingJobRow.locator('[data-testid="status-badge"]').filter({ hasText: /pending/i })).toBeVisible();
+    
+    // Step 3: Click the "Edit Status" button
+    const editButton = pendingJobRow.locator('button:has-text("Edit Status")');
     await expect(editButton).toBeVisible();
     await editButton.click();
     
-    // Step 4: Wait for the status update modal/form to appear
-    const modal = page.locator('[data-testid*="modal"], .modal, [role="dialog"]').first();
+    // Step 4: Wait for the status update modal to appear
+    const modal = page.locator('[data-testid="status-update-modal"]');
     await expect(modal).toBeVisible({ timeout: 5000 });
     
-    // Step 5: Update status to RUNNING with progress
-    const statusSelect = page.locator('select#status, select[name="status"], select').filter({ hasText: /running|pending/i }).first();
-    if (await statusSelect.isVisible()) {
-      await statusSelect.selectOption('RUNNING');
-    }
+    // Step 5: Update status to RUNNING
+    const statusSelect = page.locator('select#status');
+    await expect(statusSelect).toBeVisible();
+    await statusSelect.selectOption('RUNNING');
     
     // Add a status message
-    const messageField = page.locator('textarea#message, textarea[name="message"], textarea').first();
-    if (await messageField.isVisible()) {
-      await messageField.fill('Job is now running - Updated by E2E test');
-    }
+    const messageField = page.locator('textarea#message');
+    await expect(messageField).toBeVisible();
+    await messageField.fill('Job is now running - Updated by E2E test');
     
     // Set progress (should appear when status is RUNNING)
-    const progressField = page.locator('input#progress, input[name="progress"], input[type="number"]').first();
-    if (await progressField.isVisible()) {
-      await progressField.fill('35');
-    }
+    const progressField = page.locator('input#progress');
+    await expect(progressField).toBeVisible();
+    await progressField.fill('35');
     
     // Step 6: Submit the status update
-    const updateButton = page.locator('button').filter({ hasText: /update|save|confirm/i }).first();
+    const updateButton = page.locator('button:has-text("Update Status")');
     await expect(updateButton).toBeVisible();
+    await expect(updateButton).toBeEnabled();
+    
     await updateButton.click();
     
-    // Step 7: Wait for the modal to close and changes to be reflected
-    await expect(modal).not.toBeVisible({ timeout: 5000 });
-    await page.waitForTimeout(2000); // Allow for API call and UI update
+    // Step 7: Wait for success and modal to close
+    await page.waitForTimeout(5000); // Give time for API call and UI updates
     
     // Step 8: Verify the status change is reflected in the table
     // The job should now show "Running" status instead of "Pending"
-    await expect(pendingJobRow.locator('td, span').filter({ hasText: /running/i })).toBeVisible();
+    await expect(pendingJobRow.locator('[data-testid="status-badge"]').filter({ hasText: /running/i })).toBeVisible({ timeout: 15000 });
     
-    // Step 9: Verify progress is shown (if applicable)
-    if (await page.locator('text=35%').isVisible()) {
-      await expect(page.locator('text=35%')).toBeVisible();
-    }
+    // Step 9: Verify progress is shown
+    await expect(pendingJobRow).toContainText('35%');
     
     // Step 10: Verify the job is no longer in pending status
-    // The same row should not contain "Pending" anymore
-    await expect(pendingJobRow.locator('td, span').filter({ hasText: /pending/i })).not.toBeVisible();
+    await expect(pendingJobRow.locator('[data-testid="status-badge"]').filter({ hasText: /pending/i })).not.toBeVisible();
   });
 
   test('should display existing jobs from mock data', async ({ page }) => {
