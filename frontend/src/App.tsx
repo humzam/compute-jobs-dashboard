@@ -1,0 +1,84 @@
+import React from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { ToastProvider } from './contexts/ToastContext'
+import { Header } from './components/common/Header'
+import { Container } from './components/common/Container'
+import { DashboardStats } from './components/dashboard/DashboardStats'
+import { JobForm } from './components/jobs/JobForm'
+import { JobList } from './components/jobs/JobList'
+
+// Create a client with optimized cache settings
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 2 * 60 * 1000, // 2 minutes - data is fresh for 2 minutes
+      gcTime: 15 * 60 * 1000, // 15 minutes - keep unused data for 15 minutes
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx errors, but retry on network errors
+        if (error?.status >= 400 && error?.status < 500) return false;
+        return failureCount < 2;
+      },
+      refetchOnWindowFocus: true,
+      refetchOnMount: 'always', // Always refetch to ensure fresh data
+      networkMode: 'online', // Only query when online
+    },
+    mutations: {
+      retry: 1,
+      networkMode: 'online',
+    },
+  },
+})
+
+
+const CompleteDashboard = () => {
+  const [refreshTrigger, setRefreshTrigger] = React.useState(0);
+
+  const handleJobCreated = React.useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      
+      <main className="py-8">
+        <Container>
+          <div className="space-y-8">
+            <DashboardStats refreshTrigger={refreshTrigger} />
+            
+            <JobForm onJobCreated={handleJobCreated} />
+            
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">All Jobs</h2>
+                <p className="text-gray-600 mt-1">View and manage your computational jobs</p>
+              </div>
+              
+              <JobList refreshTrigger={refreshTrigger} />
+            </div>
+          </div>
+        </Container>
+      </main>
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <Router>
+          <Routes>
+            <Route path="/dashboard" element={<CompleteDashboard />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Router>
+      </ToastProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  )
+}
+
+export default App
