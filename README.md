@@ -63,7 +63,6 @@ Tests run in isolated Docker containers with mocked APIs.
 
 ### Testing Performance
 - **Isolated E2E tests**: Tests run in dedicated containers with API mocking to eliminate backend dependencies
-- **Parallel CI/CD**: Matrix strategy in GitHub Actions runs multiple make commands in parallel
 - **Containerized testing**: Complete test isolation using Docker profiles for consistent, reproducible results
 
 ### Frontend Optimization
