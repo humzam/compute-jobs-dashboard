@@ -1,8 +1,13 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { ComputationalJobsDashboard } from './pages/ComputationalJobsDashboard'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ToastProvider } from './contexts/ToastContext'
+import { Header } from './components/common/Header'
+import { Container } from './components/common/Container'
+import { DashboardStats } from './components/dashboard/DashboardStats'
+import { JobForm } from './components/jobs/JobForm'
+import { JobList } from './components/jobs/JobList'
 
 // Create a client with optimized cache settings
 const queryClient = new QueryClient({
@@ -26,13 +31,47 @@ const queryClient = new QueryClient({
   },
 })
 
+
+const CompleteDashboard = () => {
+  const [refreshTrigger, setRefreshTrigger] = React.useState(0);
+
+  const handleJobCreated = React.useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      
+      <main className="py-8">
+        <Container>
+          <div className="space-y-8">
+            <DashboardStats refreshTrigger={refreshTrigger} />
+            
+            <JobForm onJobCreated={handleJobCreated} />
+            
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">All Jobs</h2>
+                <p className="text-gray-600 mt-1">View and manage your computational jobs</p>
+              </div>
+              
+              <JobList refreshTrigger={refreshTrigger} />
+            </div>
+          </div>
+        </Container>
+      </main>
+    </div>
+  );
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <Router>
           <Routes>
-            <Route path="/dashboard" element={<ComputationalJobsDashboard />} />
+            <Route path="/dashboard" element={<CompleteDashboard />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Router>

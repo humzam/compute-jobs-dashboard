@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
             CREATE OR REPLACE FUNCTION refresh_job_stats()
             RETURNS void AS $$
             BEGIN
-                REFRESH MATERIALIZED VIEW CONCURRENTLY job_stats_view;
+                REFRESH MATERIALIZED VIEW job_stats_view;
             END;
             $$ LANGUAGE plpgsql;
             """,

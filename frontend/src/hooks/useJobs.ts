@@ -25,23 +25,7 @@ export const useJobs = (options: UseJobsOptions = {}) => {
   
   const queryResult = useQuery({
     queryKey: jobsKeys.list({ search, status, priority, page, page_size }),
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (search) params.append('search', search);
-      if (status) params.append('status', status);
-      if (priority) params.append('priority', priority);
-      params.append('page', page.toString());
-      params.append('page_size', page_size.toString());
-      
-      const url = `http://localhost:8000/api/jobs/${params.toString() ? '?' + params.toString() : ''}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch jobs');
-      }
-      
-      return response.json();
-    },
+    queryFn: () => jobsApi.getJobs({ search, status, priority, page, page_size }),
     staleTime: 30 * 1000, // 30 seconds - jobs data changes frequently
     gcTime: 5 * 60 * 1000, // 5 minutes - cache job lists for 5 minutes
     refetchOnWindowFocus: true,
@@ -71,11 +55,38 @@ export const useJobStats = () => {
   return useQuery({
     queryKey: jobsKeys.stats(),
     queryFn: async () => {
-      const response = await fetch('http://localhost:8000/api/jobs/stats/');
-      if (!response.ok) {
-        throw new Error('Failed to fetch stats');
+      try {
+        // For now, let's calculate stats from the jobs data
+        const jobsResponse = await jobsApi.getJobs({ page_size: 1000 }); // Get all jobs
+        const jobs = jobsResponse.results || [];
+        
+        const stats = {
+          total_jobs: jobs.length,
+          status_counts: {
+            pending: jobs.filter((job: any) => job.latest_status?.status_type === 'PENDING').length,
+            running: jobs.filter((job: any) => job.latest_status?.status_type === 'RUNNING').length,
+            completed: jobs.filter((job: any) => job.latest_status?.status_type === 'COMPLETED').length,
+            failed: jobs.filter((job: any) => job.latest_status?.status_type === 'FAILED').length,
+            cancelled: jobs.filter((job: any) => job.latest_status?.status_type === 'CANCELLED').length,
+          },
+          priority_distribution: jobs.reduce((acc: any, job: any) => {
+            const priority = job.priority || 1;
+            acc[priority] = (acc[priority] || 0) + 1;
+            return acc;
+          }, {}),
+          recent_jobs: jobs.filter((job: any) => {
+            const createdAt = new Date(job.created_at);
+            const twentyFourHoursAgo = new Date();
+            twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+            return createdAt > twentyFourHoursAgo;
+          }).length,
+        };
+        
+        return stats;
+      } catch (error) {
+        console.error('Error in useJobStats:', error);
+        throw error;
       }
-      return response.json();
     },
     staleTime: 30 * 1000, // 30 seconds for stats
     refetchInterval: 30 * 1000, // Auto-refresh every 30 seconds

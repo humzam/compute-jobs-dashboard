@@ -9,6 +9,14 @@ ENV PYTHONUNBUFFERED=1 \
 
 # Stage 2: Dependencies installation
 FROM python-base as dependencies
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /tmp
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

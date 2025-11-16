@@ -256,11 +256,7 @@ def get_application_metrics():
         status_counts = {}
         for status_type, _ in JobStatus.STATUS_CHOICES:
             count = Job.objects.filter(
-                statuses__status_type=status_type,
-                statuses__timestamp__in=Job.objects.filter(
-                    pk=job.pk
-                ).values_list('statuses__timestamp', flat=True).order_by('-statuses__timestamp')[:1]
-                for job in Job.objects.all()
+                statuses__status_type=status_type
             ).distinct().count()
             status_counts[status_type.lower()] = count
         

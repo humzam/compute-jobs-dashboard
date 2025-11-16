@@ -1,10 +1,18 @@
 import { Job, JobCreate, JobStatusUpdate, JobsResponse } from '../../types/job';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 export const jobsApi = {
-  getJobs: async (page = 1): Promise<JobsResponse> => {
-    const response = await fetch(`${API_BASE_URL}/jobs/?page=${page}`);
+  getJobs: async (params: { page?: number; page_size?: number; search?: string; status?: string; priority?: string } = {}): Promise<JobsResponse> => {
+    const urlParams = new URLSearchParams();
+    if (params.page) urlParams.append('page', params.page.toString());
+    if (params.page_size) urlParams.append('page_size', params.page_size.toString());
+    if (params.search) urlParams.append('search', params.search);
+    if (params.status) urlParams.append('status', params.status);
+    if (params.priority) urlParams.append('priority', params.priority);
+    
+    const url = `${API_BASE_URL}/jobs/${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
+    const response = await fetch(url);
     if (!response.ok) {
       throw new Error('Failed to fetch jobs');
     }
