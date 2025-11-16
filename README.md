@@ -13,14 +13,14 @@ A computational job management system built with React and Django.
 
 For more details on things like API endpoints, other helpful Makefile targets, or debugging help, please see: [DOCUMENTATION.md](documentation.md).
 
-## Prerequisites
+## 👇 Prerequisites
 
 - Docker
 - Docker Compose v2
 - Make
 - Bash
 
-## Quick Start
+## 📝 Quick Start
 
 ```bash
 # Build the application
@@ -39,13 +39,13 @@ make stop
 make clean
 ```
 
-## Development
+## 🧑‍💻 Development
 
 The application will be available at:
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000
 
-## Testing
+## 🧪 Testing
 
 The test suite includes 6 E2E tests covering critical user flows:
 - Job creation and management
@@ -54,7 +54,7 @@ The test suite includes 6 E2E tests covering critical user flows:
 
 Tests run in isolated Docker containers with mocked APIs.
 
-## Performance Considerations
+## ⚡ Performance Considerations
 
 ### Docker Optimization
 - **Multi-stage builds**: Separate development and production Docker images to minimize production footprint
@@ -75,7 +75,7 @@ Tests run in isolated Docker containers with mocked APIs.
 - **Health monitoring**: Database health checks prevent premature application startup
 - **Volume persistence**: Optimized data storage with named Docker volumes
 
-## Prompt Engineering Writeup
+## ✨ Prompt Engineering Writeup
 
 Almost all the code generated in this repo was written with the help of AI agents. In total, **this project took me about ~4.5 hours**, start to finish.
 
