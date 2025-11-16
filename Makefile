@@ -1,7 +1,29 @@
 # Computational Jobs Dashboard - Makefile
 # Production-ready Django + React application
 
-.PHONY: help build up down logs clean migrate seed test lint format check-deps security-check
+.PHONY: help build up test stop clean dev-build dev-up dev-down dev-logs dev-clean migrate seed lint format check-deps security-check
+
+# Required Commands
+build: ## Builds the Docker images
+	docker compose build
+
+up: ## Starts the entire application stack using Docker Compose
+	docker compose up -d
+	@echo "✅ Application stack started"
+	@echo "Frontend: http://localhost:5173"
+	@echo "Backend API: http://localhost:8000"
+	@echo "Admin: http://localhost:8000/admin"
+
+test: ## Runs your Playwright E2E tests
+	npm run test:e2e
+
+stop: ## Stops the running Docker containers
+	docker compose down
+
+clean: ## Removes Docker volumes/networks if necessary for a clean slate
+	docker compose down -v --remove-orphans
+	docker system prune -f
+	docker volume prune -f
 
 # Default target
 help: ## Show this help message
@@ -73,7 +95,7 @@ seed-prod: ## Seed production database with sample data
 	@echo "✅ Sample data created for production"
 
 # Testing Commands
-test: ## Run Python tests
+test-python: ## Run Python tests
 	docker compose exec backend python manage.py test
 
 test-e2e: ## Run Playwright E2E tests
@@ -154,7 +176,7 @@ db-restore: ## Restore database from backup (requires BACKUP_FILE variable)
 	@echo "✅ Database restored from $(BACKUP_FILE)"
 
 # Cleanup Commands
-clean: ## Clean up Docker resources
+clean-docker: ## Clean up Docker resources
 	docker compose down -v --remove-orphans
 	docker system prune -f
 	docker volume prune -f
