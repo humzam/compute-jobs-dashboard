@@ -1,6 +1,6 @@
 # Job Dashboard
 
-[![CI](https://img.shields.io/github/actions/workflow/status/humza-mangrio/job-dashboard/job-dashboard-ci.yaml?branch=main&style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/humza-mangrio/job-dashboard/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/humzam/job-dashboard/job-dashboard-ci.yaml?branch=main&style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/humzam/job-dashboard/actions/workflows/job-dashboard-ci.yaml)
 
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
