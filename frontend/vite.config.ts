@@ -5,10 +5,13 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true,
+    host: '0.0.0.0',
     port: 5173,
-    // Allow all hosts for Docker networking
-    allowedHosts: 'all',
+    // Explicitly allow specific hosts
+    allowedHosts: ['localhost', 'frontend', '127.0.0.1', '0.0.0.0'],
+    hmr: {
+      clientPort: 5173,
+    },
   },
   resolve: {
     alias: {
