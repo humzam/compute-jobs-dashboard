@@ -1,0 +1,37 @@
+# E2E Testing Container
+FROM mcr.microsoft.com/playwright:v1.56.1-jammy
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files for dependency installation
+COPY package*.json ./
+COPY frontend/package*.json ./frontend/
+
+# Install root dependencies (includes Playwright)
+RUN npm ci
+
+# Install frontend dependencies
+RUN cd frontend && npm ci
+
+# Copy test files and configuration
+COPY playwright.config.ci.ts ./
+COPY e2e/ ./e2e/
+COPY frontend/src/ ./frontend/src/
+COPY frontend/vite.config.ts ./frontend/
+COPY frontend/tsconfig.json ./frontend/
+COPY frontend/tailwind.config.js ./frontend/
+COPY frontend/postcss.config.js ./frontend/
+COPY frontend/index.html ./frontend/
+
+# Create public directory (Vite expects it)
+RUN mkdir -p ./frontend/public
+
+# Install Playwright browsers (they're included in the base image but let's ensure they're there)
+RUN npx playwright install --with-deps
+
+# Set environment variable to indicate we're running in CI
+ENV CI=true
+
+# Run the tests
+CMD ["npx", "playwright", "test", "--config=playwright.config.ci.ts"]

@@ -59,5 +59,22 @@ services:
       - backend
     command: npm run dev
 
+  e2e-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.e2e
+    container_name: job_dashboard_e2e
+    environment:
+      - CI=true
+    volumes:
+      - ./test-results:/app/test-results
+      - ./playwright-report:/app/playwright-report
+    depends_on:
+      - frontend
+    profiles:
+      - testing
+    networks:
+      - default
+
 volumes:
   postgres_data:

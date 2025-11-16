@@ -15,7 +15,14 @@ up: ## Starts the entire application stack using Docker Compose
 	@echo "Admin: http://localhost:8000/admin"
 
 test: ## Runs your Playwright E2E tests
-	npx playwright test --config=playwright.config.ci.ts
+	@echo "🚀 Running E2E tests in Docker container..."
+	docker compose --profile testing build e2e-tests
+	docker compose --profile testing up frontend -d
+	@echo "⏳ Waiting for frontend to be ready (30 seconds)..."
+	@sleep 30
+	docker compose --profile testing run --rm e2e-tests
+	@echo "🧹 Cleaning up test containers..."
+	docker compose --profile testing down
 
 stop: ## Stops the running Docker containers
 	docker compose down
