@@ -45,6 +45,28 @@ The test suite includes 6 E2E tests covering critical user flows:
 
 Tests run in isolated Docker containers with mocked APIs.
 
+## Performance Considerations
+
+### Docker Optimization
+- **Multi-stage builds**: Separate development and production Docker images to minimize production footprint
+- **Layer caching**: Optimized Dockerfile layer ordering for faster rebuilds
+- **Health checks**: Implemented container health checks for reliable service startup and monitoring
+
+### Testing Performance
+- **Isolated E2E tests**: Tests run in dedicated containers with API mocking to eliminate backend dependencies
+- **Parallel CI/CD**: Matrix strategy in GitHub Actions runs multiple make commands in parallel
+- **Containerized testing**: Complete test isolation using Docker profiles for consistent, reproducible results
+
+### Frontend Optimization
+- **Vite development server**: Fast HMR and optimized bundling for development
+- **Docker networking**: Configured allowedHosts for efficient container-to-container communication
+- **Static asset serving**: Production setup uses Nginx for optimized static file delivery
+
+### Database Performance
+- **Connection pooling**: PostgreSQL configured with appropriate connection limits
+- **Health monitoring**: Database health checks prevent premature application startup
+- **Volume persistence**: Optimized data storage with named Docker volumes
+
 ## Prompt Engineering Writeup
 
 Almost all the code generated in this repo was written with the help of AI agents. In total, **this project took me about ~4.5 hours**, start to finish.
