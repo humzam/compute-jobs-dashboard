@@ -1,168 +1,108 @@
-# Computational Jobs Dashboard 🚀
+# Job Dashboard
 
-A modern, production-ready web application for managing and monitoring computational jobs. Built with Django REST Framework and React, featuring real-time updates, comprehensive monitoring, and enterprise-grade performance optimizations.
+A computational job management system built with React and Django.
 
-## ✨ Features
+For more details on things like API endpoints, other helpful Makefile targets, or debugging help, please see: [DOCUMENTATION.md](documentation.md).
 
-### Core Functionality
-- **Job Management**: Create, update, and delete computational jobs
-- **Real-time Status Tracking**: Live updates for running jobs with progress indicators
-- **Advanced Filtering**: Search by name, filter by status/priority with smart pagination
-- **Status Management**: Comprehensive job lifecycle (PENDING → RUNNING → COMPLETED/FAILED/CANCELLED)
-- **Priority System**: 10-level priority system (1-3: Low, 4-7: Medium, 8-10: High)
+## Prerequisites
 
-### Performance & Scalability
-- **Optimized for Scale**: Handles 1000+ jobs with sub-2s page loads
-- **Smart Caching**: Materialized database views with 5-minute refresh cycles
-- **Efficient Pagination**: 10/20/50/100 items per page with intelligent query optimization
-- **Database Indexing**: Partial indexes for common query patterns
-- **Real-time Polling**: Automatic 5-second polling for RUNNING jobs only
+- Docker
+- Docker Compose v2
+- Make
+- Bash
 
-### Production Features
-- **Rate Limiting**: Tiered API limits (100/min read, 20/min write, 30/min stats)
-- **Health Monitoring**: Comprehensive health checks and performance metrics
-- **Security**: CORS protection, input validation, SQL injection prevention
-- **Logging**: Structured JSON logging with request tracking
-- **Containerization**: Production-ready Docker setup with multi-stage builds
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Docker and Docker Compose v2
-- Node.js 18+ (for local development)
-
-### Development Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd job-dashboard
-   ```
-
-2. **Start development environment**
-   ```bash
-   make quick-start
-   ```
-
-3. **Access the application**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8000
-   - Health Check: http://localhost:8000/health/
-
-### Production Deployment
-
-1. **Create production environment**
-   ```bash
-   make env-template
-   # Edit .env.prod with your production values
-   ```
-
-2. **Deploy to production**
-   ```bash
-   make prod-deploy
-   ```
-
-## 📊 API Documentation
-
-### Core Endpoints
-```
-GET    /api/jobs/           # List jobs with filtering/pagination
-POST   /api/jobs/           # Create new job
-PUT    /api/jobs/{id}/      # Update job status
-DELETE /api/jobs/{id}/      # Delete job
-GET    /health/             # Application health check
-GET    /metrics/            # Performance metrics
-```
-
-### Example Usage
-
-#### Create Job
-```bash
-POST /api/jobs/
-{
-  "name": "Data Processing Pipeline",
-  "description": "Process customer data with validation rules",
-  "priority": 7
-}
-```
-
-#### Update Job Status
-```bash
-PUT /api/jobs/123/
-{
-  "status_type": "RUNNING",
-  "message": "Processing batch 2 of 5",
-  "progress": 40
-}
-```
-
-## 🛠️ Development Commands
+## Quick Start
 
 ```bash
-make dev-up              # Start development environment
-make dev-down            # Stop development environment
-make migrate             # Run Django migrations
-make seed                # Seed with test data
-make test                # Run Python tests
-make test-e2e            # Run Playwright E2E tests
-make lint                # Run linters
-make prod-deploy         # Deploy to production
+# Build the application
+make build
+
+# Start the application
+make up
+
+# Run E2E tests
+make test
+
+# Stop the application
+make stop
+
+# Clean up containers and volumes
+make clean
 ```
 
-## 📈 Performance Benchmarks
+## Development
 
-- **Page Load Time**: < 2s for 1000+ jobs
-- **API Response Time**: < 200ms for paginated requests
-- **Stats Endpoint**: 100x improvement (500ms → 5ms) with materialized views
-- **Memory Usage**: < 50MB growth during typical operations
+The application will be available at:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
 
-## 🔒 Security Features
+## Testing
 
-- **Rate Limiting**: 100/min read, 20/min write operations
-- **CORS Protection**: Configured for specific origins
-- **Input Validation**: Django REST Framework serializers
-- **SQL Injection Prevention**: Django ORM parameterized queries
-- **HTTPS Ready**: SSL/TLS configuration included
+The test suite includes 6 E2E tests covering critical user flows:
+- Job creation and management
+- Status updates
+- Basic functionality
 
-## 📦 Production Deployment
+Tests run in isolated Docker containers with mocked APIs.
 
-Production-ready setup includes:
-- Multi-stage Docker builds
-- Nginx load balancer
-- PostgreSQL database with optimizations
-- Redis cache for rate limiting
-- Health checks and monitoring
-- Structured logging
+## Prompt Engineering Writeup
 
-## 📋 Troubleshooting
+Almost all the code generated in this repo was written with the help of AI agents. In total, **this project took me about ~4.5 hours**, start to finish.
 
-### Common Issues
+### 1. Requirements Extraction
 
-**Environment won't start:**
-```bash
-make clean && make dev-build && make migrate && make dev-up
+My first task was to extract out a core requirements spec document out of the PDF I was given for this project. I didn't want to simply dump the whole PDF and try letting it consume it all (especially since there's things not relevant to the initial build, and stretch goals we don't need to tackle initially.)
+
+- **a)** Its known that AIs do well with consuming markdown, so I copied out the requirements from the PDF and asked ChatGPT to create an AI-friendly version in markdown, to make it easier for the AI to consume when it comes time to build. See this file at `./ai/job_dashboard_spec.md`.
+
+- **b)** Note: Even this simple task took a few tries with ChatGPT to get the nicely prepared formatting I was after. The key lesson here is which is a reoccurring theme: don't trust what AI spits out. Its best practice to verify at each stage, before you get too far with some unusable slop.
+
+**Prompt (ChatGPT 5):**
+> Please take this raw text representing the core requirements for my application, and transform into a AI-friendly spec to consume in markdown format.
+
+### 2. System Prompt Creation
+
+I am using Claude Opus for planning the architecture, and Claude Sonnet for implementation. This is because Opus is known for its reasoning and deep-thinking capability. Sonnet is more of a work-horse coding agent, better for debugging, iteration, and chatting about code tweaks (and much less pricey!). So next I created 2 carefully crafted system prompts, to tailor each AI towards being an expert engineer in the area we are working on for this project. I didn't create this by hand either, I used an AI (ChatGPT 5.1) to do so. I created one for Opus at `./ai/opus_system_prompt.md` and one for Sonnet at `./ai/sonnet_system_prompt.md`.
+
+**Prompt (ChatGPT 5):**
+> I'm using Claude Opus for design and Claude Sonnet for implementation of my Django/React/Postgres project. Please create system prompt files for each of these models for my Django/React project.
+
+### 3. Architecture Planning
+
+I switched to Claude Opus and pasted in my Opus System Prompt. Then, I prompted Opus with:
+
+**Prompt (Claude Opus):**
+> Generate the full architecture and implementation plan for my Django + React Job Dashboard app. Reference the spec file at `./ai/job_dashboard_spec.md`. Save your output into markdown files under the `./ai` directory. The implementation roadmap is for another AI to use. Please generate the implementation roadmap, using numbered milestones that is consumable for an AI.
+
+### 4. Milestone-Based Implementation
+
+Once that was completed and I verified it, I switched back to Claude Sonnet for coding. AIs can get overwhelmed with too much context and requests given at once. For that reason, I do not want to prompt the AI to build the whole app in a single shot. Rather, I will leverage the intentionally milestones created in the `implementation-roadmap.md` and prompt it to tackle those, 1 at a time. This is much more time-consuming for me obviously, but it will ensure higher quality code as the context window won't get overloaded with looking at or editing too many files at once. Its also easier to verify for me, and easier for the AI agent to iterate on individual stages.
+
+**Prompt (Claude Sonnet):**
+```
+> [Paste in Sonnet system prompt]
+> Implement Milestone #1
 ```
 
-**Check application health:**
-```bash
-make health-check
-make metrics
+**(Milestone 1 allegedly done)**
+```
+> How can I test this myself locally?
 ```
 
-**View logs:**
-```bash
-make logs-backend
-make logs-frontend
+**(Was told to use docker compose with some flags)**
+```
+> [Pasted docker compose error and let AI fix it]
+> [Pasted a new Dockerfile error and let AI fix it]
 ```
 
-## 🤝 Contributing
+**(At this point, another Docker error so I figured something had gone wrong during Docker implementation. Lets take a step back and have the AI revist all of its work and verify itself)**
+```
+> Please re-review all the Docker setup you've done, ensure it makes sense, and ensure it passes any appropriate tests at this stage.
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `make test-all`
-5. Submit a pull request
+**(Confirmed that docker compose now works)**
+```
+> Implement Milestone #2
+```
 
----
-
-**Built with ❤️ for computational job management**
+**(rinse and repeat the above cycle)**
