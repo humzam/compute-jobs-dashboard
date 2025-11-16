@@ -28,7 +28,7 @@ A modern, production-ready web application for managing and monitoring computati
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Docker and Docker Compose
+- Docker and Docker Compose v2
 - Node.js 18+ (for local development)
 
 ### Development Setup

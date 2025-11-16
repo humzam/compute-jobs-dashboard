@@ -215,3 +215,11 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Security sensitive files
+*.cookies.txt
+*cookies.txt
+fresh_cookies.txt
+*.session
+*.tokens
+*.jwt

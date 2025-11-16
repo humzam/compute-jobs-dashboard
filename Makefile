@@ -11,28 +11,28 @@ help: ## Show this help message
 
 # Development Commands
 dev-build: ## Build development containers
-	docker-compose build
+	docker compose build
 
 dev-up: ## Start development environment
-	docker-compose up -d
+	docker compose up -d
 	@echo "✅ Development environment started"
 	@echo "Frontend: http://localhost:5173"
 	@echo "Backend API: http://localhost:8000"
 	@echo "Admin: http://localhost:8000/admin"
 
 dev-logs: ## View development logs
-	docker-compose logs -f
+	docker compose logs -f
 
 dev-down: ## Stop development environment
-	docker-compose down
+	docker compose down
 
 dev-clean: ## Clean development environment (removes volumes)
-	docker-compose down -v --remove-orphans
+	docker compose down -v --remove-orphans
 	docker system prune -f
 
 # Production Commands
 prod-build: ## Build production containers
-	docker-compose -f docker-compose.prod.yml build --no-cache
+	docker compose -f docker-compose.prod.yml build --no-cache
 
 prod-up: ## Start production environment
 	@if [ ! -f .env.prod ]; then \
@@ -40,7 +40,7 @@ prod-up: ## Start production environment
 		echo "Please create .env.prod with required environment variables"; \
 		exit 1; \
 	fi
-	docker-compose -f docker-compose.prod.yml up -d
+	docker compose -f docker-compose.prod.yml up -d
 	@echo "✅ Production environment started"
 	@echo "Application: http://localhost"
 	@echo "Health Check: http://localhost/health/"
@@ -48,33 +48,33 @@ prod-up: ## Start production environment
 	@echo "Monitoring: http://localhost:3000 (Grafana)"
 
 prod-logs: ## View production logs
-	docker-compose -f docker-compose.prod.yml logs -f
+	docker compose -f docker-compose.prod.yml logs -f
 
 prod-down: ## Stop production environment
-	docker-compose -f docker-compose.prod.yml down
+	docker compose -f docker-compose.prod.yml down
 
 prod-deploy: prod-build migrate-prod seed-prod prod-up ## Full production deployment
 
 # Database Commands
 migrate: ## Run Django migrations (development)
-	docker-compose exec backend python manage.py migrate
+	docker compose exec backend python manage.py migrate
 
 migrate-prod: ## Run Django migrations (production)
-	docker-compose -f docker-compose.prod.yml exec backend python manage.py migrate
+	docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
 
 makemigrations: ## Create new Django migrations
-	docker-compose exec backend python manage.py makemigrations
+	docker compose exec backend python manage.py makemigrations
 
 seed: ## Seed database with test data (development)
-	docker-compose exec backend python manage.py seed_test_data --clear --count 50
+	docker compose exec backend python manage.py seed_test_data --clear --count 50
 
 seed-prod: ## Seed production database with sample data
-	docker-compose -f docker-compose.prod.yml exec backend python manage.py migrate
+	docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
 	@echo "✅ Sample data created for production"
 
 # Testing Commands
 test: ## Run Python tests
-	docker-compose exec backend python manage.py test
+	docker compose exec backend python manage.py test
 
 test-e2e: ## Run Playwright E2E tests
 	npm run test:e2e
@@ -90,13 +90,13 @@ test-all: test test-e2e ## Run all tests (Python + E2E)
 # Code Quality Commands
 lint: ## Run linters
 	@echo "🔍 Running Python linting..."
-	docker-compose exec backend python -m flake8 .
+	docker compose exec backend python -m flake8 .
 	@echo "🔍 Running JavaScript/TypeScript linting..."
 	cd frontend && npm run lint
 
 format: ## Format code
 	@echo "🎨 Formatting Python code..."
-	docker-compose exec backend python -m black .
+	docker compose exec backend python -m black .
 	@echo "🎨 Formatting JavaScript/TypeScript code..."
 	cd frontend && npm run format
 
@@ -106,13 +106,13 @@ type-check: ## Run TypeScript type checking
 # Security Commands
 security-check: ## Run security checks
 	@echo "🔐 Running Python security checks..."
-	docker-compose exec backend python -m pip-audit
+	docker compose exec backend python -m pip-audit
 	@echo "🔐 Running JavaScript security checks..."
 	cd frontend && npm audit
 
 check-deps: ## Check for dependency updates
 	@echo "📦 Checking Python dependencies..."
-	docker-compose exec backend python -m pip list --outdated
+	docker compose exec backend python -m pip list --outdated
 	@echo "📦 Checking Node.js dependencies..."
 	cd frontend && npm outdated
 
@@ -127,21 +127,21 @@ metrics: ## View performance metrics
 	@curl -s http://localhost:8000/metrics/ | python -m json.tool
 
 logs-backend: ## View backend logs only
-	docker-compose logs -f backend
+	docker compose logs -f backend
 
 logs-frontend: ## View frontend logs only
-	docker-compose logs -f frontend
+	docker compose logs -f frontend
 
 logs-db: ## View database logs only
-	docker-compose logs -f db
+	docker compose logs -f db
 
 # Database Management
 db-shell: ## Open database shell
-	docker-compose exec db psql -U postgres -d job_dashboard
+	docker compose exec db psql -U postgres -d job_dashboard
 
 db-backup: ## Backup database
 	@mkdir -p backups
-	docker-compose exec db pg_dump -U postgres -d job_dashboard > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
+	docker compose exec db pg_dump -U postgres -d job_dashboard > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
 	@echo "✅ Database backup created in backups/"
 
 db-restore: ## Restore database from backup (requires BACKUP_FILE variable)
@@ -150,30 +150,30 @@ db-restore: ## Restore database from backup (requires BACKUP_FILE variable)
 		echo "Usage: make db-restore BACKUP_FILE=backups/backup_20231201_120000.sql"; \
 		exit 1; \
 	fi
-	docker-compose exec -T db psql -U postgres -d job_dashboard < $(BACKUP_FILE)
+	docker compose exec -T db psql -U postgres -d job_dashboard < $(BACKUP_FILE)
 	@echo "✅ Database restored from $(BACKUP_FILE)"
 
 # Cleanup Commands
 clean: ## Clean up Docker resources
-	docker-compose down -v --remove-orphans
+	docker compose down -v --remove-orphans
 	docker system prune -f
 	docker volume prune -f
 
 clean-all: ## Deep clean (removes all Docker data)
-	docker-compose down -v --remove-orphans
+	docker compose down -v --remove-orphans
 	docker system prune -a -f
 	docker volume prune -f
 
 # Utility Commands
 shell-backend: ## Open shell in backend container
-	docker-compose exec backend bash
+	docker compose exec backend bash
 
 shell-frontend: ## Open shell in frontend container
-	docker-compose exec frontend sh
+	docker compose exec frontend sh
 
 install-deps: ## Install/update all dependencies
 	cd frontend && npm install
-	docker-compose build
+	docker compose build
 
 # Production Utilities
 ssl-setup: ## Generate SSL certificates for production
@@ -227,6 +227,6 @@ production-start: env-template ## Initialize production environment
 status: ## Show current environment status
 	@echo "🔍 Environment Status:"
 	@echo "====================="
-	@docker-compose ps 2>/dev/null || echo "Development environment not running"
+	@docker compose ps 2>/dev/null || echo "Development environment not running"
 	@echo ""
-	@docker-compose -f docker-compose.prod.yml ps 2>/dev/null || echo "Production environment not running"
+	@docker compose -f docker-compose.prod.yml ps 2>/dev/null || echo "Production environment not running"
