@@ -5,3 +5,6 @@ psycopg2-binary==2.9.10
 python-decouple==3.8
 django-filter==23.5
 psutil==5.9.5
+gunicorn==21.2.0
+gevent==23.9.1
+redis==5.0.1
