@@ -19,5 +19,8 @@ jobs:
         node-version: '20'
         cache: 'npm'
 
+    - name: Install playwright
+      run: npm install -g playwright
+
     - name: Run playwright tests
       run: make test
