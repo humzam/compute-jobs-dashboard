@@ -1,9 +1,13 @@
 name: Job Dashboard CI
 
 on:
+  # automatically run on merges to main
   push:
     branches: [ main ]
+  # automatically run in any PR in this repo
   pull_request:
+  # allow manual triggers
+  workflow_dispatch:
 
 jobs:
   ci:
