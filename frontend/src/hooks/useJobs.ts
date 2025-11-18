@@ -133,10 +133,10 @@ export const useUpdateJobStatus = () => {
               ? {
                   ...job,
                   latest_status: {
-                    ...job.latest_status,
+                    id: (job.latest_status?.id || 0) + 1, // Increment ID for new status
                     status_type: statusUpdate.status_type,
-                    message: statusUpdate.message || job.latest_status?.message || '',
-                    progress: statusUpdate.progress ?? job.latest_status?.progress,
+                    message: statusUpdate.message || '',
+                    progress: statusUpdate.progress !== undefined ? statusUpdate.progress : null,
                     timestamp: new Date().toISOString(),
                   },
                 }

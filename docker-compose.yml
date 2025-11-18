@@ -57,7 +57,7 @@ services:
       - /app/node_modules
     depends_on:
       - backend
-    command: npm run dev
+    command: node --experimental-modules --es-module-specifier-resolution=node ./node_modules/vite/bin/vite.js --host 0.0.0.0
 
   e2e-tests:
     build:
