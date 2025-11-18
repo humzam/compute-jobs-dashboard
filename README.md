@@ -29,6 +29,9 @@ make build
 # Start the application
 make up
 
+# (optional) Seed the database with test data
+make seed
+
 # Run E2E tests
 make test
 
