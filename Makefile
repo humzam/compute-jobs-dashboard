@@ -40,7 +40,7 @@ help: ## Show this help message
 
 # Production Commands
 prod-build: ## Build production containers
-	docker compose -f docker-compose.prod.yml build --no-cache
+	docker compose -f docker-compose.prod.yml --env-file .env.prod build --no-cache
 
 prod-up: ## Start production environment
 	@if [ ! -f .env.prod ]; then \
@@ -48,7 +48,7 @@ prod-up: ## Start production environment
 		echo "Please create .env.prod with required environment variables"; \
 		exit 1; \
 	fi
-	docker compose -f docker-compose.prod.yml up -d
+	docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 	@echo "✅ Production environment started"
 	@echo "Application: http://localhost"
 	@echo "Health Check: http://localhost/health/"
@@ -56,10 +56,10 @@ prod-up: ## Start production environment
 	@echo "Monitoring: http://localhost:3000 (Grafana)"
 
 prod-logs: ## View production logs
-	docker compose -f docker-compose.prod.yml logs -f
+	docker compose -f docker-compose.prod.yml --env-file .env.prod logs -f
 
 prod-down: ## Stop production environment
-	docker compose -f docker-compose.prod.yml down
+	docker compose -f docker-compose.prod.yml --env-file .env.prod down
 
 prod-deploy: prod-build migrate-prod prod-up ## Full production deployment
 
@@ -68,7 +68,7 @@ migrate: ## Run Django migrations (development)
 	docker compose exec backend python manage.py migrate
 
 migrate-prod: ## Run Django migrations (production)
-	docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
+	docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py migrate
 
 makemigrations: ## Create new Django migrations
 	docker compose exec backend python manage.py makemigrations
