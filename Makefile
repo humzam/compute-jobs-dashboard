@@ -1,7 +1,7 @@
 # Computational Jobs Dashboard - Makefile
 # Production-ready Django + React application
 
-.PHONY: help build up test stop clean dev-build dev-up dev-down dev-logs dev-clean migrate seed lint format check-deps security-check
+.PHONY: help build up test stop clean prod-build prod-up prod-logs prod-down prod-deploy migrate migrate-prod makemigrations seed seed-prod test-python test-all lint format type-check security-check check-deps health-check metrics db-shell db-backup db-restore clean-all shell-backend shell-frontend install-deps ssl-setup env-template quick-start production-start
 
 # Required Commands
 build: ## Builds the Docker images
@@ -37,27 +37,6 @@ help: ## Show this help message
 	@echo "Computational Jobs Dashboard - Make Commands"
 	@echo "============================================"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
-
-# Development Commands
-dev-build: ## Build development containers
-	docker compose build
-
-dev-up: ## Start development environment
-	docker compose up -d
-	@echo "✅ Development environment started"
-	@echo "Frontend: http://localhost:5173"
-	@echo "Backend API: http://localhost:8000"
-	@echo "Admin: http://localhost:8000/admin"
-
-dev-logs: ## View development logs
-	docker compose logs -f
-
-dev-down: ## Stop development environment
-	docker compose down
-
-dev-clean: ## Clean development environment (removes volumes)
-	docker compose down -v --remove-orphans
-	docker system prune -f
 
 # Production Commands
 prod-build: ## Build production containers
@@ -105,16 +84,7 @@ seed-prod: ## Seed production database with sample data
 test-python: ## Run Python tests
 	docker compose exec backend python manage.py test
 
-test-e2e: ## Run Playwright E2E tests
-	npm run test:e2e
-
-test-e2e-headed: ## Run E2E tests with browser UI
-	npm run test:e2e:headed
-
-test-performance: ## Run performance-specific E2E tests
-	npm run test:e2e -- e2e/performance.spec.ts
-
-test-all: test test-e2e ## Run all tests (Python + E2E)
+test-all: test test-python ## Run all tests (Python + E2E)
 
 # Code Quality Commands
 lint: ## Run linters
@@ -154,15 +124,6 @@ health-check: ## Check application health
 metrics: ## View performance metrics
 	@echo "📊 Application metrics:"
 	@curl -s http://localhost:8000/metrics/ | python -m json.tool
-
-logs-backend: ## View backend logs only
-	docker compose logs -f backend
-
-logs-frontend: ## View frontend logs only
-	docker compose logs -f frontend
-
-logs-db: ## View database logs only
-	docker compose logs -f db
 
 # Database Management
 db-shell: ## Open database shell
