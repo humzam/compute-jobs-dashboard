@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: job-dashboard
+data:
+  VITE_API_URL: "http://backend-service:8000/api"
