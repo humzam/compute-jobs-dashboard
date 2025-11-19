@@ -1,7 +1,7 @@
 # Computational Jobs Dashboard - Makefile
 # Production-ready Django + React application
 
-.PHONY: help build up test stop clean prod-build prod-up prod-logs prod-down prod-deploy migrate migrate-prod makemigrations seed test-python lint format type-check security-check check-deps health-check metrics db-shell db-backup db-restore shell-backend shell-frontend quick-start
+.PHONY: help build up test stop clean prod-build prod-up prod-logs prod-down prod-deploy migrate migrate-prod makemigrations seed test-python lint format type-check quick-start
 
 # Required Commands
 build: ## Builds the Docker images
@@ -61,7 +61,7 @@ prod-logs: ## View production logs
 prod-down: ## Stop production environment
 	docker compose -f docker-compose.prod.yml down
 
-prod-deploy: prod-build migrate-prod seed-prod prod-up ## Full production deployment
+prod-deploy: prod-build migrate-prod prod-up ## Full production deployment
 
 # Database Commands
 migrate: ## Run Django migrations (development)
@@ -76,11 +76,9 @@ makemigrations: ## Create new Django migrations
 seed: ## Seed database with test data (development)
 	docker compose exec backend python manage.py seed_test_data --clear --count 50
 
-
 # Testing Commands
 test-python: ## Run Python tests
 	docker compose exec backend python manage.py test
-
 
 # Code Quality Commands
 lint: ## Run linters
@@ -97,57 +95,6 @@ format: ## Format code
 
 type-check: ## Run TypeScript type checking
 	cd frontend && npm run build
-
-# Security Commands
-security-check: ## Run security checks
-	@echo "🔐 Running Python security checks..."
-	docker compose exec backend python -m pip-audit
-	@echo "🔐 Running JavaScript security checks..."
-	cd frontend && npm audit
-
-check-deps: ## Check for dependency updates
-	@echo "📦 Checking Python dependencies..."
-	docker compose exec backend python -m pip list --outdated
-	@echo "📦 Checking Node.js dependencies..."
-	cd frontend && npm outdated
-
-# Monitoring Commands
-health-check: ## Check application health
-	@echo "🏥 Checking application health..."
-	@curl -s http://localhost:8000/health/ | python -m json.tool || echo "❌ Backend health check failed"
-	@curl -s http://localhost/ > /dev/null && echo "✅ Frontend is accessible" || echo "❌ Frontend health check failed"
-
-metrics: ## View performance metrics
-	@echo "📊 Application metrics:"
-	@curl -s http://localhost:8000/metrics/ | python -m json.tool
-
-# Database Management
-db-shell: ## Open database shell
-	docker compose exec db psql -U postgres -d job_dashboard
-
-db-backup: ## Backup database
-	@mkdir -p backups
-	docker compose exec db pg_dump -U postgres -d job_dashboard > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
-	@echo "✅ Database backup created in backups/"
-
-db-restore: ## Restore database from backup (requires BACKUP_FILE variable)
-	@if [ -z "$(BACKUP_FILE)" ]; then \
-		echo "❌ Error: Please specify BACKUP_FILE variable"; \
-		echo "Usage: make db-restore BACKUP_FILE=backups/backup_20231201_120000.sql"; \
-		exit 1; \
-	fi
-	docker compose exec -T db psql -U postgres -d job_dashboard < $(BACKUP_FILE)
-	@echo "✅ Database restored from $(BACKUP_FILE)"
-
-
-# Utility Commands
-shell-backend: ## Open shell in backend container
-	docker compose exec backend bash
-
-shell-frontend: ## Open shell in frontend container
-	docker compose exec frontend sh
-
-
 
 # Quick Start Commands
 quick-start: build up migrate seed ## Quick start development environment
