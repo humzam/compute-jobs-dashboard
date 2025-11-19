@@ -1,7 +1,7 @@
 # Computational Jobs Dashboard - Makefile
 # Production-ready Django + React application
 
-.PHONY: help build up test stop clean prod-build prod-up prod-logs prod-down prod-deploy migrate migrate-prod makemigrations seed seed-prod test-python test-all lint format type-check security-check check-deps health-check metrics db-shell db-backup db-restore clean-all shell-backend shell-frontend ssl-setup env-template quick-start production-start
+.PHONY: help build up test stop clean prod-build prod-up prod-logs prod-down prod-deploy migrate migrate-prod makemigrations seed test-python lint format type-check security-check check-deps health-check metrics db-shell db-backup db-restore shell-backend shell-frontend quick-start
 
 # Required Commands
 build: ## Builds the Docker images
@@ -76,15 +76,11 @@ makemigrations: ## Create new Django migrations
 seed: ## Seed database with test data (development)
 	docker compose exec backend python manage.py seed_test_data --clear --count 50
 
-seed-prod: ## Seed production database with sample data
-	docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
-	@echo "✅ Sample data created for production"
 
 # Testing Commands
 test-python: ## Run Python tests
 	docker compose exec backend python manage.py test
 
-test-all: test test-python ## Run all tests (Python + E2E)
 
 # Code Quality Commands
 lint: ## Run linters
@@ -143,10 +139,6 @@ db-restore: ## Restore database from backup (requires BACKUP_FILE variable)
 	docker compose exec -T db psql -U postgres -d job_dashboard < $(BACKUP_FILE)
 	@echo "✅ Database restored from $(BACKUP_FILE)"
 
-clean-all: ## Deep clean (removes all Docker data)
-	docker compose down -v --remove-orphans
-	docker system prune -a -f
-	docker volume prune -f
 
 # Utility Commands
 shell-backend: ## Open shell in backend container
@@ -156,30 +148,6 @@ shell-frontend: ## Open shell in frontend container
 	docker compose exec frontend sh
 
 
-# Production Utilities
-ssl-setup: ## Generate SSL certificates for production
-	@mkdir -p ssl
-	@openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-		-keyout ssl/nginx.key \
-		-out ssl/nginx.crt \
-		-subj "/C=US/ST=State/L=City/O=Organization/OU=OrgUnit/CN=localhost"
-	@echo "✅ SSL certificates generated in ssl/"
-
-env-template: ## Create environment template files
-	@echo "Creating .env.example..."
-	@echo "# Development Environment Variables" > .env.example
-	@echo "DB_PASSWORD=your_secure_password" >> .env.example
-	@echo "SECRET_KEY=your_django_secret_key" >> .env.example
-	@echo "DEBUG=True" >> .env.example
-	@echo "" >> .env.example
-	@echo "Creating .env.prod.example..."
-	@echo "# Production Environment Variables" > .env.prod.example
-	@echo "DB_USER=jobuser" >> .env.prod.example
-	@echo "DB_PASSWORD=your_very_secure_password" >> .env.prod.example
-	@echo "SECRET_KEY=your_production_secret_key" >> .env.prod.example
-	@echo "GRAFANA_PASSWORD=your_grafana_admin_password" >> .env.prod.example
-	@echo "DEBUG=False" >> .env.prod.example
-	@echo "✅ Environment template files created"
 
 # Quick Start Commands
 quick-start: build up migrate seed ## Quick start development environment
@@ -190,8 +158,3 @@ quick-start: build up migrate seed ## Quick start development environment
 	@echo "⚡ Admin Panel: http://localhost:8000/admin"
 	@echo "📊 Health Check: http://localhost:8000/health/"
 
-production-start: env-template ## Initialize production environment
-	@echo "🏭 Production environment setup..."
-	@echo "1. Fill in .env.prod with your production values"
-	@echo "2. Run: make prod-deploy"
-	@echo "3. Access your application at http://localhost"
