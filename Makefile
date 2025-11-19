@@ -182,12 +182,6 @@ db-restore: ## Restore database from backup (requires BACKUP_FILE variable)
 	docker compose exec -T db psql -U postgres -d job_dashboard < $(BACKUP_FILE)
 	@echo "✅ Database restored from $(BACKUP_FILE)"
 
-# Cleanup Commands
-clean-docker: ## Clean up Docker resources
-	docker compose down -v --remove-orphans
-	docker system prune -f
-	docker volume prune -f
-
 clean-all: ## Deep clean (removes all Docker data)
 	docker compose down -v --remove-orphans
 	docker system prune -a -f
@@ -229,14 +223,6 @@ env-template: ## Create environment template files
 	@echo "DEBUG=False" >> .env.prod.example
 	@echo "✅ Environment template files created"
 
-# CI/CD Commands (for GitHub Actions or similar)
-ci-test: ## Run all CI tests
-	@echo "🚀 Running CI test suite..."
-	make lint
-	make type-check
-	make test
-	make security-check
-
 # Quick Start Commands
 quick-start: dev-build migrate seed dev-up ## Quick start development environment
 	@echo ""
@@ -251,11 +237,3 @@ production-start: env-template ## Initialize production environment
 	@echo "1. Fill in .env.prod with your production values"
 	@echo "2. Run: make prod-deploy"
 	@echo "3. Access your application at http://localhost"
-
-# Status and Information
-status: ## Show current environment status
-	@echo "🔍 Environment Status:"
-	@echo "====================="
-	@docker compose ps 2>/dev/null || echo "Development environment not running"
-	@echo ""
-	@docker compose -f docker-compose.prod.yml ps 2>/dev/null || echo "Production environment not running"
