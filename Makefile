@@ -185,7 +185,7 @@ env-template: ## Create environment template files
 	@echo "✅ Environment template files created"
 
 # Quick Start Commands
-quick-start: dev-build migrate seed dev-up ## Quick start development environment
+quick-start: build up migrate seed ## Quick start development environment
 	@echo ""
 	@echo "🎉 Development environment is ready!"
 	@echo "📱 Frontend: http://localhost:5173"
