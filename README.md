@@ -1,4 +1,4 @@
-# Job Dashboard
+# Compute Jobs Dashboard
 
 [![CI](https://img.shields.io/github/actions/workflow/status/humzam/job-dashboard/job-dashboard-ci.yaml?branch=main&style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/humzam/job-dashboard/actions/workflows/job-dashboard-ci.yaml)
 
@@ -23,7 +23,7 @@ For more details on things like API endpoints, other helpful Makefile targets, o
 ## 📝 Quick Start
 
 ```bash
-# Build the application
+# Build the Docker images
 make build
 
 # Start the application
@@ -32,7 +32,7 @@ make up
 # (optional) Seed the database with test data
 make seed
 
-# Run E2E tests
+# Run E2E tests (playwright)
 make test
 
 # Stop the application
@@ -88,7 +88,7 @@ My first task was to extract out a core requirements spec document out of the PD
 
 - **a)** Its known that AIs do well with consuming markdown, so I copied out the requirements from the PDF and asked ChatGPT to create an AI-friendly version in markdown, to make it easier for the AI to consume when it comes time to build. See this file at [./ai/job_dashboard_spec.md](./ai/job_dashboard_spec.md).
 
-- **b)** Note: Even this simple task took a few tries with ChatGPT to get the nicely prepared formatting I was after. The key lesson here is which is a reoccurring theme: don't trust what AI spits out. Its best practice to verify at each stage, before you get too far with some unusable slop.
+- **b)** Even this simple task took a few tries with ChatGPT to get the nicely prepared formatting I was after. The key lesson here, which is a reoccurring theme: don't trust what AI spits out. Its best practice to verify at each stage, before you get too far with some unusable slop.
 
 **Prompt (ChatGPT 5):**
 > Please take this raw text representing the core requirements for my application, and transform into a AI-friendly spec to consume in markdown format.
@@ -116,30 +116,23 @@ Once that was completed and I verified the plan looked roughly right, I switched
 Rather, I will leverage the intentionally milestones created in the [./ai/implementation-roadmap.md](ai/implementation-roadmap.md) and prompt it to tackle those, 1 at a time. This is much more time-consuming for me obviously, but it will ensure higher quality code as the context window won't get overloaded with looking at or editing too many files at once. Its also easier to verify for me, and easier for the AI agent to iterate on individual stages.
 
 **Prompt (Claude Sonnet):**
-```
 > [Paste in Sonnet system prompt]
+
 > Implement Milestone #1
-```
 
 **(Milestone 1 allegedly done)**
-```
 > How can I test this myself locally?
-```
 
 **(Was told to use docker compose with some flags)**
-```
-> [Pasted docker compose error and let AI fix it]
-> [Pasted a new Dockerfile error and let AI fix it]
-```
+> [I found a docker compose error and let AI fix it]
 
-**(At this point, another Docker error so I figured something had gone wrong during Docker implementation. Lets take a step back and have the AI revist all of its work and verify itself)**
-```
+**(Agent updated some code)**
+> [I found a new Dockerfile error and let AI fix it]
+
+**(At this point, another Docker error surfaced so I figured something had gone wrong during Docker implementation. Lets take a step back and have the the Agent revist all of its work at this stage and verify itself)**
 > Please re-review all the Docker setup you've done, ensure it makes sense, and ensure it passes any appropriate tests at this stage.
-```
 
-**(Confirmed that docker compose now works)**
-```
+**(Magically, now I could confirm that docker compose works)**
 > Implement Milestone #2
-```
 
 **(rinse and repeat the above cycle)**
