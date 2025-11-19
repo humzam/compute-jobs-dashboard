@@ -13,6 +13,9 @@ A computational job management system built with React and Django.
 
 For more details on things like API endpoints, other helpful Makefile targets, or debugging help, please see: [DOCUMENTATION.md](DOCUMENTATION.md).
 
+<img width="1264" height="895" alt="Screenshot 2025-11-18 at 3 09 26 PM" src="https://github.com/user-attachments/assets/f76579be-bd61-47a8-92f3-88e364707d89" />
+
+
 ## 👇 Prerequisites
 
 - Docker
