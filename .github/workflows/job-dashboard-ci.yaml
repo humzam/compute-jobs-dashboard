@@ -1,11 +1,19 @@
 name: Job Dashboard CI
 
 on:
-  # automatically run on merges to main
+  # automatically run on merges to main (unless only docs or AI files were changed)
   push:
     branches: [ main ]
-  # automatically run in any PR in this repo
+    paths-ignore:
+      - 'README.md'
+      - 'ai/**'
+      - DOCUMENTATION.md
+  # automatically run in any PR in this repo (unless only docs or AI files were changed)
   pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'ai/**'
+      - DOCUMENTATION.md
   # allow manual triggers
   workflow_dispatch:
 
