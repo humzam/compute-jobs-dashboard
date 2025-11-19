@@ -1,7 +1,7 @@
 # Computational Jobs Dashboard - Makefile
 # Production-ready Django + React application
 
-.PHONY: help build up test stop clean prod-build prod-up prod-logs prod-down prod-deploy migrate migrate-prod makemigrations seed seed-prod test-python test-all lint format type-check security-check check-deps health-check metrics db-shell db-backup db-restore clean-all shell-backend shell-frontend install-deps ssl-setup env-template quick-start production-start
+.PHONY: help build up test stop clean prod-build prod-up prod-logs prod-down prod-deploy migrate migrate-prod makemigrations seed seed-prod test-python test-all lint format type-check security-check check-deps health-check metrics db-shell db-backup db-restore clean-all shell-backend shell-frontend ssl-setup env-template quick-start production-start
 
 # Required Commands
 build: ## Builds the Docker images
@@ -155,9 +155,6 @@ shell-backend: ## Open shell in backend container
 shell-frontend: ## Open shell in frontend container
 	docker compose exec frontend sh
 
-install-deps: ## Install/update all dependencies
-	cd frontend && npm install
-	docker compose build
 
 # Production Utilities
 ssl-setup: ## Generate SSL certificates for production
