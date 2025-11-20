@@ -8,7 +8,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     // Explicitly allow specific hosts
-    allowedHosts: ['localhost', 'frontend', '127.0.0.1', '0.0.0.0'],
+    allowedHosts: ['localhost', 'frontend', '127.0.0.1', '0.0.0.0', 'humzashouldgetthisjob.com'],
     hmr: {
       clientPort: 5173,
     },
