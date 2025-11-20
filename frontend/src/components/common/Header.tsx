@@ -38,28 +38,28 @@ export const Header: React.FC<HeaderProps> = ({
                   
                   <div className="text-center">
                     <div className="text-2xl font-bold text-yellow-600">
-                      {stats.pending_jobs || 0}
+                      {stats.status_counts?.pending || 0}
                     </div>
                     <div className="text-sm text-gray-500">Pending</div>
                   </div>
                   
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600">
-                      {stats.running_jobs || 0}
+                      {stats.status_counts?.running || 0}
                     </div>
                     <div className="text-sm text-gray-500">Running</div>
                   </div>
                   
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">
-                      {stats.completed_jobs || 0}
+                      {stats.status_counts?.completed || 0}
                     </div>
                     <div className="text-sm text-gray-500">Completed</div>
                   </div>
                   
                   <div className="text-center">
                     <div className="text-2xl font-bold text-red-600">
-                      {stats.failed_jobs || 0}
+                      {stats.status_counts?.failed || 0}
                     </div>
                     <div className="text-sm text-gray-500">Failed</div>
                   </div>
