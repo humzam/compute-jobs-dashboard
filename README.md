@@ -92,7 +92,7 @@ Tests run in isolated Docker containers with mocked APIs.
 
 ## ✨ Prompt Engineering Writeup
 
-Almost all the code generated in this repo was written with the help of AI agents. In total, **this project took me about ~4.5 hours**, start to finish.
+Almost all the code generated in this repo was written with the help of AI agents. The bulk of the implementation for this project **took me about 4.5 hours**. I probably spent another hour doing things like cleanup, refactoring for simplification, testing, etc. Maybe another hour doing extra credit things like a functional CI pipeline and a real prod deployment.
 
 ### 1. Requirements Extraction
 
