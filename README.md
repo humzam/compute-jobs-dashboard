@@ -11,7 +11,7 @@
 
 A computational job management system built with React and Django.
 
-## 🌐 Live Demo
+## 🌐 Prod Deployment
 
 **🚀 View Live Application → [humzashouldgetthisjob.com](https://humzashouldgetthisjob.com)**
 
@@ -21,8 +21,6 @@ The application is deployed in production with:
 - ✅ Docker containerization
 - ✅ Nginx reverse proxy
 - ✅ PostgreSQL database with seeded data
-
-For more details on things like API endpoints, other helpful Makefile targets, or debugging help, please see: [DOCUMENTATION.md](DOCUMENTATION.md).
 
 
 ## 👇 Prerequisites
@@ -59,6 +57,8 @@ make clean
 The application will be available at:
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000
+
+For more details on things like API endpoints, other helpful Makefile targets, or debugging help, please see: [DOCUMENTATION.md](DOCUMENTATION.md).
 
 ## 🧪 Testing
 
