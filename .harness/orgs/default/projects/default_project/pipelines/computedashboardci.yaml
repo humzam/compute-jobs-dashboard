@@ -27,7 +27,7 @@ pipeline:
             enabled: true
           platform:
             os: MacOS
-            arch: Amd64
+            arch: Arm64
           runtime:
             type: Docker
             spec: {}
