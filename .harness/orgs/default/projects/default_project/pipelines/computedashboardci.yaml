@@ -41,3 +41,11 @@ pipeline:
                     shell: Bash
                     command: make up
                   description: Triggers the core make command which brings up the containers and then runs the tests.
+              - step:
+                  type: Run
+                  name: Clean Up
+                  identifier: Clean_Up
+                  spec:
+                    shell: Bash
+                    command: make down
+                  description: destroy containers
