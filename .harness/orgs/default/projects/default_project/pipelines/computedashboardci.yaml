@@ -1,0 +1,43 @@
+pipeline:
+  name: compute-dashboard-ci
+  identifier: computedashboardci
+  projectIdentifier: default_project
+  orgIdentifier: default
+  description: "The main CI pipeline for compute-jobs-dashboard. "
+  tags:
+    test-pipeline: ""
+  properties:
+    ci:
+      codebase:
+        connectorRef: GitHubhumzam
+        repoName: compute-jobs-dashboard
+        build: <+input>
+  stages:
+    - stage:
+        name: Run E2E Tests
+        identifier: Run_E2E_Tests
+        description: Uses Docker Compose + Make to run E2E tests on the platform.
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: true
+          buildIntelligence:
+            enabled: true
+          platform:
+            os: MacOS
+            arch: Amd64
+          runtime:
+            type: Docker
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: make-up
+                  identifier: makeup
+                  spec:
+                    shell: Bash
+                    command: make up
+                  description: Triggers the core make command which brings up the containers and then runs the tests.
